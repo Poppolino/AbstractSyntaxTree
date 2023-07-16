@@ -5,16 +5,20 @@ from abstract_syntax_tree import *
 def interpreta_linhas(lista_tokens: list):
     tokens_por_linha = []
     aux = []
+
     for indice, token in enumerate(lista_tokens):
-        #print(token.valor)
         aux.append(token)
+        
         if token.tag == "LINHA":
             tokens_por_linha.append(aux)
             aux = []
         elif indice == len(lista_tokens)-1:
             tokens_por_linha.append(aux)
+    
     return tokens_por_linha
 
+
+# Realiza a análise léxica, sintática e calcula o resultado das expressões
 if __name__ == '__main__':
     inicio = fim = 0
     impressao = 1
@@ -37,10 +41,3 @@ if __name__ == '__main__':
             print(f"Portanto, o resultado é: {calcula(parser)}\n")
             
             impressao += 1
-
-
-
-
-
-## 2º Etapa: Gera as árvores de expressões aritméticas e um dicionário com o valor das variáveis
-## 3º Etapa: Calcula e apresenta o resultado das expressões com base nos valores das variáveis

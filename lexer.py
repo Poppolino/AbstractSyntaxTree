@@ -10,7 +10,7 @@ import re
 
 
 
-# Cada token é formado por um tipo (categoria) e um valor (encontrado no texto) 
+# Cada token é formado por um tipo (tag) e um valor (encontrado no texto) 
 class Token:
     def __init__(self, tag: str, valor: None):
         self.tag = tag
