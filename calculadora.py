@@ -16,23 +16,25 @@ def interpreta_linhas(lista_tokens: list):
     return tokens_por_linha
 
 if __name__ == '__main__':
-    arquivo = stdin.read()
-    
     inicio = fim = 0
+    impressao = 1
+    
+    arquivo = stdin.read()
+
     lista_tokens = analisador_lexico(arquivo)
     tokens_por_linha = interpreta_linhas(lista_tokens)
     
-    impressao = 1
+    
     for token in tokens_por_linha:
         parser = Parser(token).parserS()
         if token[0].tag == "IMPRESSÃO":
             
-            inicio = arquivo.find('@', inicio)+1
-            fim = arquivo.find('\n', inicio)
+            inicio = arquivo.find('@', inicio) + 1
+            fim = arquivo.find('\n', inicio) if arquivo.find('\n', inicio) != -1 else None
             
             print(f"\n{impressao}ª impressão a ser interpretada é: {arquivo[inicio:fim].strip()}")
             print(f"Considerando as variaveis dadas temos: {expressao_string(parser)}")
-            print(f"Portanto, o resultado é: {avaliar(parser)}\n")
+            print(f"Portanto, o resultado é: {calcula(parser)}\n")
             
             impressao += 1
 
