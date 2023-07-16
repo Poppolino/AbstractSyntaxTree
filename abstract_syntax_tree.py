@@ -22,7 +22,7 @@ class ExpConstOperadorUnario:
 class ExpConstVariavel:
     def __init__(self, nome: str):
         self.nome = nome
-        self.tag = "Variable"
+        self.tag = "Variável"
 
 class ExpConstParenteses:
     def __init__(self, expressao):
@@ -31,7 +31,7 @@ class ExpConstParenteses:
 
 class ExpConstFuncoes:
     def __init__(self, nome: str, expressao: list):
-        self.nome = nome
+        self.nome = "sqrt"
         self.expressao = expressao
         self.tag = "Função"
 
@@ -68,108 +68,108 @@ class Parser:
         else:
             raise SyntaxError('Tu é bobão!')
     
-    def parseVS(self):
+    def parserVS(self):
         e = ExpVazia()
 
         while True:
-            if self.espiadinha("EOF"):
+            if self.espiadinha("FIM"):
                 return e
-            elif self.espiadinha("VARIABLE"):
-                var = self.consome("VARIABLE")
-                self.consome("EQUAL")
-                exp = self.parseE()
+            elif self.espiadinha("VARIÁVEL"):
+                var = self.consome("VARIÁVEL")
+                self.consome("ATRIBUIÇÃO")
+                exp = self.parserE()
                 e = ExpConstAtribuicao(var.valor, exp)
-                if not self.espiadinha("NEWLINE"):
-                    if self.espiadinha("EOF"):
+                if not self.espiadinha("LINHA"):
+                    if self.espiadinha("FIM"):
                         return e
                     raise SyntaxError('Tu é bobão!')
             else:
                 break
         return e
         
-    def parsePS(self):
+    def parserPS(self):
         e = ExpVazia()
 
         while True:
-            if self.espiadinha("EOF"):
+            if self.espiadinha("FIM"):
                 return e
-            elif self.espiadinha("PRINT"):
-                self.consome("PRINT")
-                e = self.parseE()
-                if not self.espiadinha("NEWLINE"):
-                    if self.espiadinha("EOF"):
+            elif self.espiadinha("IMPRESSÃO"):
+                self.consome("IMPRESSÃO")
+                e = self.parserE()
+                if not self.espiadinha("LINHA"):
+                    if self.espiadinha("FIM"):
                         return e
                     raise SyntaxError('Tu é bobão!')
             else:
                 break
         return e
 
-    def parseS(self):
-        if self.espiadinha("VARIABLE"):
-            return self.parseVS()
-        elif self.espiadinha("PRINT"):
-            return self.parsePS()
-        elif self.espiadinha("NEWLINE") or self.espiadinha("EOF"):
+    def parserS(self):
+        if self.espiadinha("VARIÁVEL"):
+            return self.parserVS()
+        elif self.espiadinha("IMPRESSÃO"):
+            return self.parserPS()
+        elif self.espiadinha("LINHA") or self.espiadinha("FIM"):
             return ExpVazia()
         else:
             raise SyntaxError('Tu é bobão!')
 
-    def parseE(self):
-        e = self.parseT()
+    def parserE(self):
+        e = self.parserT()
         while True:
-            if self.espiadinha("EOF"):
+            if self.espiadinha("FIM"):
                 return e
-            elif self.espiadinha("SUM"):
-                self.consome("SUM")
-                e = ExpConstOperadorBinario(e, "+", self.parseT())
-            elif self.espiadinha("SUB"):
-                self.consome("SUB")
-                e = ExpConstOperadorBinario(e, "-", self.parseT())
+            elif self.espiadinha("SOMA"):
+                self.consome("SOMA")
+                e = ExpConstOperadorBinario(e, "+", self.parserT())
+            elif self.espiadinha("SUBTRAÇÃO"):
+                self.consome("SUBTRAÇÃO")
+                e = ExpConstOperadorBinario(e, "-", self.parserT())
             else:
                 break
         return e
     
-    def parseT(self):
-        e = self.parseF()
+    def parserT(self):
+        e = self.parserF()
         while True:
-            if self.espiadinha("EOF"):
+            if self.espiadinha("FIM"):
                 return e
-            elif self.espiadinha("MULT"):
-                self.consome("MULT")
-                e = ExpConstOperadorBinario(e, "*", self.parseF())
-            elif self.espiadinha("DIV"):
-                self.consome("DIV")
-                e = ExpConstOperadorBinario(e, "/", self.parseF())
+            elif self.espiadinha("MULTIPLICAÇÃO"):
+                self.consome("MULTIPLICAÇÃO")
+                e = ExpConstOperadorBinario(e, "*", self.parserF())
+            elif self.espiadinha("DIVISÃO"):
+                self.consome("DIVISÃO")
+                e = ExpConstOperadorBinario(e, "/", self.parserF())
             else:
                 break
         return e
     
-    def parseF(self):
-        if self.espiadinha("NUM"):
-            n = self.consome("NUM")
-            return ExpConstNumero(int(n.valor))
+    def parserF(self):
+        if self.espiadinha("NÚMERO"):
+            n = self.consome("NÚMERO")
+            return ExpConstNumero(float(n.valor))
         
-        elif self.espiadinha("VARIABLE"):
-            v = self.consome("VARIABLE")
+        elif self.espiadinha("VARIÁVEL"):
+            v = self.consome("VARIÁVEL")
             return ExpConstVariavel(v.valor)
                         
-        elif self.espiadinha("PARENTESES_L"):
-            self.consome("PARENTESES_L")
-            e = self.parseE()
-            self.consome("PARENTESES_R")
+        elif self.espiadinha("ABRE"):
+            self.consome("ABRE")
+            e = self.parserE()
+            self.consome("FECHA")
             return ExpConstParenteses(e)
             
-        elif self.espiadinha("SUB"):
-            self.consome("SUB")
-            e = self.parseF()
+        elif self.espiadinha("SUBTRAÇÃO"):
+            self.consome("SUBTRAÇÃO")
+            e = self.parserF()
             return ExpConstOperadorUnario("-", e)
         
-        elif self.espiadinha("FUNCTION"):
-            function = self.consome("FUNCTION").valor
-            if self.espiadinha("PARENTESES_L"):
-                self.consome("PARENTESES_L")
-                e = self.parseE()
-                self.consome("PARENTESES_R")
+        elif self.espiadinha("RAIZ"):
+            function = self.consome("RAIZ").valor
+            if self.espiadinha("ABRE"):
+                self.consome("ABRE")
+                e = self.parserE()
+                self.consome("FECHA")
                 return ExpConstFuncoes(function, [e])
 
 
@@ -193,22 +193,12 @@ def avaliar(expressao, variables = variable):
                 return -avaliar(expressao.expressao, variables)
             else:
                 raise Exception("Invalid Unário, got " + expressao.operador + " instead.")
-        case "Variable":
+        case "Variável":
             return avaliar(variables[expressao.nome], variables)
         case "Parênteses":
             return avaliar(expressao.expressao, variables)
         case "Função":
-            match expressao.nome:                
-                case "sin":
-                    return math.sin(avaliar(expressao.expressao[0], variables))
-                case "cos":
-                    return math.cos(avaliar(expressao.expressao[0], variables))
-                case "sqrt":
-                    if avaliar(expressao.expressao[0], variables) < 0:
-                        raise ValueError("Square root of negative Número")
-                    return math.sqrt(avaliar(expressao.expressao[0], variables))
-                case _:
-                    raise SyntaxError('Tu é bobão!')
+            return math.sqrt(avaliar(expressao.expressao[0], variables))
         case "Vazia":
             return 0
         case "Atribuição":
@@ -224,12 +214,12 @@ def expressao_string(expressao, variables = variable):
             return str(expressao.valor)       
         case "Unário":
             return "(" + expressao.operador + expressao_string(expressao.expressao, variables) + ")"
-        case "Variable":
+        case "Variável":
             return expressao_string(variables[expressao.nome], variables)
         case "Parênteses":
             return "(" + expressao_string(expressao.expressao, variables) + ")"
         case "Função":
-            return expressao.nome + "(" + ", ".join([expressao_string(argument, variables) for argument in expressao.expressao]) + ")"
+            return "sqrt(" + ", ".join([expressao_string(argument, variables) for argument in expressao.expressao]) + ")"
         case "Vazia":
             return ""
         case "Atribuição":
@@ -250,7 +240,7 @@ def otimizar(expressao, variables = variable):
             return ExpConstOperadorBinario(otimizar(expressao.esquerda, variables), expressao.operador, otimizar(expressao.direita, variables))
         case "Número":
             return expressao
-        case "Variable":
+        case "Variável":
             return otimizar(variables[expressao.nome], variables)
         case "Parênteses":
             return ExpConstParenteses(otimizar(expressao.expressao, variables))
