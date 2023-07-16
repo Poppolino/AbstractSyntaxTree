@@ -2,16 +2,6 @@ from sys import stdin
 from lexer import *
 from abstract_syntax_tree import *
 
-# Calcula expressões aritméticas em python passadas em um arquivo.
-
-# Autores:
-# Lucas de Lyra Monteiro
-# João David Jotta
-# Pedro Poppolino
-
-
-# Recebe uma lista de tokens e retorna uma lista de listas, 
-# em que cada lista interna representa a sequência de tokens de uma linha da entrada.  
 def interpreta_linhas(lista_tokens: list):
     tokens_por_linha = []
     aux = []
@@ -30,22 +20,24 @@ def interpreta_linhas(lista_tokens: list):
 
 # Realiza a análise léxica, sintática e calcula o resultado das expressões
 if __name__ == '__main__':
-    arquivo = stdin.read()
-    
     inicio = fim = 0
+    impressao = 1
+    
+    arquivo = stdin.read()
+
     lista_tokens = analisador_lexico(arquivo)
     tokens_por_linha = interpreta_linhas(lista_tokens)
     
-    impressao = 1
+    
     for token in tokens_por_linha:
         parser = Parser(token).parserS()
         if token[0].tag == "IMPRESSÃO":
             
-            inicio = arquivo.find('@', inicio)+1
-            fim = arquivo.find('\n', inicio)
+            inicio = arquivo.find('@', inicio) + 1
+            fim = arquivo.find('\n', inicio) if arquivo.find('\n', inicio) != -1 else None
             
             print(f"\n{impressao}ª impressão a ser interpretada é: {arquivo[inicio:fim].strip()}")
-            print(f"Considerando as variáveis dadas temos: {expressao_string(parser)}")
-            print(f"Portanto, o resultado é: {avaliar(parser)}\n")
+            print(f"Considerando as variaveis dadas temos: {expressao_string(parser)}")
+            print(f"Portanto, o resultado é: {calcula(parser)}\n")
             
             impressao += 1

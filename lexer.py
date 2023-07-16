@@ -12,7 +12,7 @@ import re
 
 # Cada token é formado por um tipo (tag) e um valor (encontrado no texto) 
 class Token:
-    def __init__(self, tag, valor):
+    def __init__(self, tag: str, valor: None):
         self.tag = tag
         self.valor = valor
 
@@ -78,7 +78,7 @@ def define_categorias():
 
 
 # Função que identifica o token da vez e o retorna
-def identifica_token(entrada, pos, categoria):
+def identifica_token(entrada: str,  pos: int, categoria: dict):
     
     for tipo in categoria:
         alvo = categoria[tipo].match(entrada, pos)

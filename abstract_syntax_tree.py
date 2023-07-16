@@ -1,91 +1,88 @@
 import math
 
-variable = {}
+# Construtor base
+class ExpressaoConstrutor:
+    def __init__(self, tag: str) -> None:
+        self.tag = tag
 
+# Expressão para operações unárias
+class OperadorUnario(ExpressaoConstrutor):
+    def __init__(self, operador: str, expressao: ExpressaoConstrutor):
+        super().__init__("Unário")
+        self.operador = operador
+        self.expressao = expressao
+        
 # Expressão para operações binárias
-class ExpConstOperadorBinario:
-    def __init__(self, esquerda, operador: str, direita):
+class OperadorBinario(ExpressaoConstrutor):
+    def __init__(self, esquerda: ExpressaoConstrutor, operador: str, direita: ExpressaoConstrutor):
+        super().__init__("Binário")
         self.esquerda = esquerda
         self.operador = operador
         self.direita = direita
-        self.tag = "Binário"
 
 # Expressão para números
-class ExpConstNumero:
+class Numero(ExpressaoConstrutor):
     def __init__(self, valor: str):
+        super().__init__("Número")
         self.valor = valor
-        self.tag = "Número"
-
-# Expressão para operações unárias
-class ExpConstOperadorUnario:
-    def __init__(self, operador: str, expressao):
-        self.operador = operador
-        self.expressao = expressao
-        self.tag = "Unário"
 
 # Expressão para quando se usa o valor de uma variável 
-class ExpConstVariavel:
+class Variavel(ExpressaoConstrutor):
     def __init__(self, nome: str):
+        super().__init__("Variável")
         self.nome = nome
-        self.tag = "Variável"
-
-# Expressão para parênteses
-class ExpConstParenteses:
-    def __init__(self, expressao):
-        self.expressao = expressao
-        self.tag = "Parênteses"
-
-# Expressão para funções (sqrt)
-class ExpConstFuncoes:
-    def __init__(self, nome: str, expressao: list):
-        self.nome = "sqrt"
-        self.expressao = expressao
-        self.tag = "Função"
-
-# Expressão Vazia
-class ExpVazia:
-    def __init__(self):
-        self.tag = "Vazia"
 
 # Uma dada expressão é atribuída a uma variável  
-class ExpConstAtribuicao:
-    def __init__(self, nome: str, expressao):
+class Atribuicao(ExpressaoConstrutor):
+    def __init__(self, nome: str, expressao: ExpressaoConstrutor):
+        super().__init__("Atribuição")
         self.nome = nome
         self.expressao = expressao
-        self.tag = "Atribuição"
-        variable[nome] = expressao
+        variaveis_salvas[nome] = expressao
+
+# Expressão para parênteses
+class Parenteses(ExpressaoConstrutor):
+    def __init__(self, expressao: ExpressaoConstrutor):
+        super().__init__("Parênteses")
+        self.expressao = expressao
+
+# Expressão para funções (sqrt)
+class Funcoes(ExpressaoConstrutor):
+    def __init__(self, nome: str, expressao: list):
+        super().__init__("Função")
+        self.nome = "sqrt"
+        self.expressao = expressao
+
+# Expressão Vazia
+class ExpVazia(ExpressaoConstrutor):
+    def __init__(self):
+        super().__init__("Vazia")
 
 
-# Cada token é formado por um tipo (tag) e um valor (encontrado no texto) 
-class Token:
-    def __init__(self, valor, tag: str):
-        self.valor = valor
-        self.tag = tag
-
-
+variaveis_salvas: dict = {}
 
 # Classe responsável pela análise sintática das expressões passadas como sequências de tokens
 class Parser:
-    def __init__(self, tokens):
+    def __init__(self, tokens: list):
         self.tokens = tokens
         self.indice = 0
         self.proximo_token = tokens[self.indice]
     
 
     # Verifica se o próximo token é do tipo informado
-    def espiadinha(self, tag):
+    def espiadinha(self, tag: str):
         return self.proximo_token.tag == tag
     
 
     # Verifica o token e o consome, caso seja do tipo esperado.
     # Isso faz com que o "próximo token" seja atualizado. 
-    def consome(self, tag):
+    def consome(self, tag: str):
         if self.espiadinha(tag):
             self.indice += 1
             self.proximo_token = self.tokens[self.indice]
             return self.tokens[self.indice - 1]
         else:
-            raise SyntaxError('Tu é bobão!')
+            raise SyntaxError('Contra a gramática: Errou a sintax em algum lugar. \n Não implementamos a contagem de linhas e colunas. Somos bobões!')
     
 
     # Gera a expressão com base nas regras:
@@ -101,11 +98,11 @@ class Parser:
                 var = self.consome("VARIÁVEL")
                 self.consome("ATRIBUIÇÃO")
                 exp = self.parserE()
-                e = ExpConstAtribuicao(var.valor, exp)
+                e = Atribuicao(var.valor, exp)
                 if not self.espiadinha("LINHA"):
                     if self.espiadinha("FIM"):
                         return e
-                    raise SyntaxError('Tu é bobão!')
+                    raise SyntaxError('Contra a gramática: Esqueceu de pular linha. Tu é bobão!')
             else:
                 break
         return e
@@ -126,7 +123,7 @@ class Parser:
                 if not self.espiadinha("LINHA"):
                     if self.espiadinha("FIM"):
                         return e
-                    raise SyntaxError('Tu é bobão!')
+                    raise SyntaxError('Contra a gramática: Esqueceu de pular linha. Tu é bobão!')
             else:
                 break
         return e
@@ -142,7 +139,7 @@ class Parser:
         elif self.espiadinha("LINHA") or self.espiadinha("FIM"):
             return ExpVazia()
         else:
-            raise SyntaxError('Tu é bobão!')
+            raise SyntaxError('Contra a gramática: Não mandou nem imprimir nem declarou variável.')
 
 
     # Gera a expressão com base nas regras:
@@ -156,10 +153,10 @@ class Parser:
                 return e
             elif self.espiadinha("SOMA"):
                 self.consome("SOMA")
-                e = ExpConstOperadorBinario(e, "+", self.parserT())
+                e = OperadorBinario(e, "+", self.parserT())
             elif self.espiadinha("SUBTRAÇÃO"):
                 self.consome("SUBTRAÇÃO")
-                e = ExpConstOperadorBinario(e, "-", self.parserT())
+                e = OperadorBinario(e, "-", self.parserT())
             else:
                 break
         return e
@@ -176,10 +173,10 @@ class Parser:
                 return e
             elif self.espiadinha("MULTIPLICAÇÃO"):
                 self.consome("MULTIPLICAÇÃO")
-                e = ExpConstOperadorBinario(e, "*", self.parserF())
+                e = OperadorBinario(e, "*", self.parserF())
             elif self.espiadinha("DIVISÃO"):
                 self.consome("DIVISÃO")
-                e = ExpConstOperadorBinario(e, "/", self.parserF())
+                e = OperadorBinario(e, "/", self.parserF())
             else:
                 break
         return e
@@ -194,22 +191,22 @@ class Parser:
     def parserF(self):
         if self.espiadinha("NÚMERO"):
             n = self.consome("NÚMERO")
-            return ExpConstNumero(float(n.valor))
+            return Numero(float(n.valor))
         
         elif self.espiadinha("VARIÁVEL"):
             v = self.consome("VARIÁVEL")
-            return ExpConstVariavel(v.valor)
+            return Variavel(v.valor)
                         
         elif self.espiadinha("ABRE"):
             self.consome("ABRE")
             e = self.parserE()
             self.consome("FECHA")
-            return ExpConstParenteses(e)
+            return Parenteses(e)
             
         elif self.espiadinha("SUBTRAÇÃO"):
             self.consome("SUBTRAÇÃO")
             e = self.parserF()
-            return ExpConstOperadorUnario("-", e)
+            return OperadorUnario("-", e)
         
         elif self.espiadinha("RAIZ"):
             function = self.consome("RAIZ").valor
@@ -217,7 +214,7 @@ class Parser:
                 self.consome("ABRE")
                 e = self.parserE()
                 self.consome("FECHA")
-                return ExpConstFuncoes(function, [e])
+                return Funcoes(function, [e])
 
 
 # Definição das operações matemáticas do nosso problema
@@ -230,33 +227,33 @@ contas = {
 
 
 # Realiza o cálculo da expressão matemática passada e retorna o resultado
-def avaliar(expressao, variables = variable):
+def calcula(expressao, variables: dict = variaveis_salvas):
     match expressao.tag:
         case 'Binário':
-            return contas[expressao.operador](avaliar(expressao.esquerda), avaliar(expressao.direita))
+            return contas[expressao.operador](calcula(expressao.esquerda), calcula(expressao.direita))
         case "Número":
             return expressao.valor
         case "Unário":
             if expressao.operador == "-":
-                return -avaliar(expressao.expressao, variables)
+                return -calcula(expressao.expressao, variables)
             else:
-                raise Exception("Invalid Unário, got " + expressao.operador + " instead.")
+                raise SyntaxError('Contra a gramática: A gramática só aceita o unário "-".')
         case "Variável":
-            return avaliar(variables[expressao.nome], variables)
+            return calcula(variables[expressao.nome], variables)
         case "Parênteses":
-            return avaliar(expressao.expressao, variables)
+            return calcula(expressao.expressao, variables)
         case "Função":
-            return math.sqrt(avaliar(expressao.expressao[0], variables))
+            return math.sqrt(calcula(expressao.expressao[0], variables))
         case "Vazia":
             return 0
         case "Atribuição":
-            return avaliar(expressao.expressao, variables) 
+            return calcula(expressao.expressao, variables) 
         case _:
-            raise SyntaxError('Tu é bobão!')
+            raise SyntaxError('Tipo inválido de Token.')
 
 
 # Constrói a string da expressão a ser resolvida
-def expressao_string(expressao, variables = variable):
+def expressao_string(expressao, variables: dict = variaveis_salvas):
     match expressao.tag:
         case "Binário":
             return "(" + expressao_string(expressao.esquerda, variables) + " " + expressao.operador + " " + expressao_string(expressao.direita, variables) + ")"
@@ -269,10 +266,11 @@ def expressao_string(expressao, variables = variable):
         case "Parênteses":
             return "(" + expressao_string(expressao.expressao, variables) + ")"
         case "Função":
-            return "sqrt(" + ", ".join([expressao_string(argument, variables) for argument in expressao.expressao]) + ")"
+            return "sqrt(" + ", ".join([expressao_string(valor, variables) for valor in expressao.expressao]) + ")"
         case "Vazia":
             return ""
         case "Atribuição":
             return expressao.nome + " = " + expressao_string(expressao.expressao, variables)
         case _:
             raise SyntaxError('Tu é bobão!')
+            raise SyntaxError('Tipo inválido de Token.')
