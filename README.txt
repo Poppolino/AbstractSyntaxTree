@@ -11,5 +11,5 @@ python calculadora.py < entrada.txt
 O arquivo de entrada do programa deve consistir de zero ou mais atribuições de variáveis em python,
 seguidas de zero ou mais comandos de impressão de expressões aritméticas em python.
 
-Observação importante: O código de "calculadora.py" importa "lexer.py" e "abstract_syntax_tree import". 
+Observação importante: O código de "calculadora.py" importa "lexer.py" e "abstract_syntax_tree.py". 
 Portanto, mantenha os 3 arquivos na mesma pasta para que "calculadora.py" execute corretamente.
