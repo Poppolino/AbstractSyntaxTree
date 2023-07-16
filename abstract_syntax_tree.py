@@ -1,6 +1,8 @@
 import math
 
 variable = {}
+
+# Expressão para operações binárias
 class ExpConstOperadorBinario:
     def __init__(self, esquerda, operador: str, direita):
         self.esquerda = esquerda
@@ -8,37 +10,44 @@ class ExpConstOperadorBinario:
         self.direita = direita
         self.tag = "Binário"
 
+# Expressão para números
 class ExpConstNumero:
     def __init__(self, valor: str):
         self.valor = valor
         self.tag = "Número"
 
+# Expressão para operações unárias
 class ExpConstOperadorUnario:
     def __init__(self, operador: str, expressao):
         self.operador = operador
         self.expressao = expressao
         self.tag = "Unário"
 
+# Expressão para quando se usa o valor de uma variável 
 class ExpConstVariavel:
     def __init__(self, nome: str):
         self.nome = nome
         self.tag = "Variável"
 
+# Expressão para parênteses
 class ExpConstParenteses:
     def __init__(self, expressao):
         self.expressao = expressao
         self.tag = "Parênteses"
 
+# Expressão para funções (sqrt)
 class ExpConstFuncoes:
     def __init__(self, nome: str, expressao: list):
         self.nome = "sqrt"
         self.expressao = expressao
         self.tag = "Função"
 
+# Expressão Vazia
 class ExpVazia:
     def __init__(self):
         self.tag = "Vazia"
 
+# Uma dada expressão é atribuída a uma variável  
 class ExpConstAtribuicao:
     def __init__(self, nome: str, expressao):
         self.nome = nome
@@ -46,20 +55,30 @@ class ExpConstAtribuicao:
         self.tag = "Atribuição"
         variable[nome] = expressao
 
+
+# Cada token é formado por um tipo (tag) e um valor (encontrado no texto) 
 class Token:
     def __init__(self, valor, tag: str):
         self.valor = valor
         self.tag = tag
 
+
+
+# Classe responsável pela análise sintática das expressões passadas como sequências de tokens
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
         self.indice = 0
         self.proximo_token = tokens[self.indice]
-        
+    
+
+    # Verifica se o próximo token é do tipo informado
     def espiadinha(self, tag):
         return self.proximo_token.tag == tag
     
+
+    # Verifica o token e o consome, caso seja do tipo esperado.
+    # Isso faz com que o "próximo token" seja atualizado. 
     def consome(self, tag):
         if self.espiadinha(tag):
             self.indice += 1
@@ -68,6 +87,10 @@ class Parser:
         else:
             raise SyntaxError('Tu é bobão!')
     
+
+    # Gera a expressão com base nas regras:
+    # VS -> 
+    # VS -> VS <var> '=' E <newline>  
     def parserVS(self):
         e = ExpVazia()
 
@@ -86,7 +109,11 @@ class Parser:
             else:
                 break
         return e
-        
+    
+
+    # Gera a expressão com base nas regras:
+    # PS -> 
+    # PS -> PS '@' E <newline>  
     def parserPS(self):
         e = ExpVazia()
 
@@ -104,6 +131,9 @@ class Parser:
                 break
         return e
 
+
+    # Gera a expressão com base na regra:
+    # S -> VS PS
     def parserS(self):
         if self.espiadinha("VARIÁVEL"):
             return self.parserVS()
@@ -114,6 +144,11 @@ class Parser:
         else:
             raise SyntaxError('Tu é bobão!')
 
+
+    # Gera a expressão com base nas regras:
+    # E -> E '+' T
+    # E -> E '-' T
+    # E -> T
     def parserE(self):
         e = self.parserT()
         while True:
@@ -128,7 +163,12 @@ class Parser:
             else:
                 break
         return e
-    
+
+
+    # Gera a expressão com base nas regras:
+    # T -> T '*' F
+    # T -> T '/' F
+    # T -> F
     def parserT(self):
         e = self.parserF()
         while True:
@@ -144,6 +184,13 @@ class Parser:
                 break
         return e
     
+
+    # Gera a expressão com base nas regras:
+    # F -> '-' F
+    # F -> <num>
+    # F -> <var>
+    # F -> <sqrt> '(' E ')'
+    # F -> '(' E ')'
     def parserF(self):
         if self.espiadinha("NÚMERO"):
             n = self.consome("NÚMERO")
@@ -173,8 +220,7 @@ class Parser:
                 return ExpConstFuncoes(function, [e])
 
 
-
-
+# Definição das operações matemáticas do nosso problema
 contas = {
     "+": lambda a, b: a + b,
     "-": lambda a, b: a - b,
@@ -182,6 +228,8 @@ contas = {
     "/": lambda a, b: a / b,
 }
 
+
+# Realiza o cálculo da expressão matemática passada e retorna o resultado
 def avaliar(expressao, variables = variable):
     match expressao.tag:
         case 'Binário':
@@ -206,6 +254,8 @@ def avaliar(expressao, variables = variable):
         case _:
             raise SyntaxError('Tu é bobão!')
 
+
+# Constrói a string da expressão a ser resolvida
 def expressao_string(expressao, variables = variable):
     match expressao.tag:
         case "Binário":
@@ -224,31 +274,5 @@ def expressao_string(expressao, variables = variable):
             return ""
         case "Atribuição":
             return expressao.nome + " = " + expressao_string(expressao.expressao, variables)
-        case _:
-            raise SyntaxError('Tu é bobão!')
-
-def otimizar(expressao, variables = variable):
-    match expressao.tag:
-        case "Unário":
-            if expressao.operador == "-":
-                if expressao.expressao.tag == "Unário" and expressao.expressao.operador == "-":
-                    return otimizar(expressao.expressao.expressao, variables)
-            return ExpConstOperadorUnario(expressao.operador, otimizar(expressao.expressao, variables))
-        case "Binário":
-            if expressao.direita.tag == "Número" and expressao.direita.valor == 0:
-                return otimizar(expressao.esquerda, variables)
-            return ExpConstOperadorBinario(otimizar(expressao.esquerda, variables), expressao.operador, otimizar(expressao.direita, variables))
-        case "Número":
-            return expressao
-        case "Variável":
-            return otimizar(variables[expressao.nome], variables)
-        case "Parênteses":
-            return ExpConstParenteses(otimizar(expressao.expressao, variables))
-        case "Função":
-            return ExpConstFuncoes(expressao.nome, [otimizar(argument, variables) for argument in expressao.expressao])
-        case "Vazia":
-            return ExpVazia()
-        case "Atribuição":
-            return ExpConstAtribuicao(expressao.nome, otimizar(expressao.expressao, variables))
         case _:
             raise SyntaxError('Tu é bobão!')

@@ -2,19 +2,33 @@ from sys import stdin
 from lexer import *
 from abstract_syntax_tree import *
 
+# Calcula expressões aritméticas em python passadas em um arquivo.
+
+# Autores:
+# Lucas de Lyra Monteiro
+# João David Jotta
+# Pedro Poppolino
+
+
+# Recebe uma lista de tokens e retorna uma lista de listas, 
+# em que cada lista interna representa a sequência de tokens de uma linha da entrada.  
 def interpreta_linhas(lista_tokens: list):
     tokens_por_linha = []
     aux = []
+
     for indice, token in enumerate(lista_tokens):
-        #print(token.valor)
         aux.append(token)
+        
         if token.tag == "LINHA":
             tokens_por_linha.append(aux)
             aux = []
         elif indice == len(lista_tokens)-1:
             tokens_por_linha.append(aux)
+    
     return tokens_por_linha
 
+
+# Realiza a análise léxica, sintática e calcula o resultado das expressões
 if __name__ == '__main__':
     arquivo = stdin.read()
     
@@ -31,14 +45,7 @@ if __name__ == '__main__':
             fim = arquivo.find('\n', inicio)
             
             print(f"\n{impressao}ª impressão a ser interpretada é: {arquivo[inicio:fim].strip()}")
-            print(f"Considerando as variaveis dadas temos: {expressao_string(parser)}")
+            print(f"Considerando as variáveis dadas temos: {expressao_string(parser)}")
             print(f"Portanto, o resultado é: {avaliar(parser)}\n")
             
             impressao += 1
-
-
-
-
-
-## 2º Etapa: Gera as árvores de expressões aritméticas e um dicionário com o valor das variáveis
-## 3º Etapa: Calcula e apresenta o resultado das expressões com base nos valores das variáveis
